@@ -2,95 +2,115 @@ name: Build Tauri App
 
 on:
   push:
-    branches: [main]        # запускать при пуше в main
-  workflow_dispatch:         # или вручную из интерфейса GitHub
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            rust_targets: x86_64-pc-windows-msvc
+            tauri_args: ""
+            artifact_name: windows-build
+            artifact_path: |
+              src-tauri/target/release/bundle/msi/*.msi
+              src-tauri/target/release/bundle/nsis/*.exe
+          - platform: macos-latest
+            rust_targets: aarch64-apple-darwin,x86_64-apple-darwin
+            tauri_args: "--target universal-apple-darwin"
+            artifact_name: macos-build
+            artifact_path: |
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
 
-    # нужно для создания релиза и заливки установщиков
-    permissions:
-      contents: write
+    runs-on: ${{ matrix.platform }}
 
     steps:
-      # 1. Получить код из репозитория
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Установить Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm           # кэшировать node_modules между запусками
+          cache: npm
 
-      # 3. Установить Rust с нужным target
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.88.0
         with:
-          targets: x86_64-pc-windows-msvc
+          targets: ${{ matrix.rust_targets }}
 
-      # 4. Кэшировать Rust-зависимости (ускоряет сборку с ~10 мин до ~2 мин)
       - name: Cache Rust dependencies
         uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: ${{ matrix.platform }}
 
-      # 5. Установить npm-зависимости
       - name: Install frontend dependencies
         run: npm install
 
-      # 6. Собрать приложение
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
+        with:
+          args: ${{ matrix.tauri_args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. Сохранить артефакты (скачать из GitHub после сборки)
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
-          retention-days: 7   # хранить 7 дней
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          retention-days: 7
 
-      # 8. Опубликовать/обновить скользящий релиз "latest" со ссылкой на .exe
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
       - name: Publish "latest" release
-        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          # пустые glob'ы разворачиваются в ничего, а не в буквальный шаблон
-          shopt -s nullglob
+          shopt -s globstar nullglob
 
-          # удалить прошлый релиз и тег latest, если они уже есть
           gh release delete latest --yes --cleanup-tag || true
 
-          # собрать список установщиков в массив (корректно работает с пробелами в именах)
           files=(
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+            artifacts/**/*.exe
+            artifacts/**/*.msi
+            artifacts/**/*.dmg
           )
 
           if [ ${#files[@]} -eq 0 ]; then
-            echo "::error::Установщики не найдены в src-tauri/target/release/bundle"
+            echo "::error::Установщики не найдены среди скачанных артефактов"
             exit 1
           fi
 
-          # текст релиза (в отдельном файле, чтобы не мучиться с отступами YAML)
           printf '%s\n' \
             "Автоматическая сборка из коммита \`${GITHUB_SHA:0:7}\`." \
             "" \
-            "Скачать установщик Windows (.exe) можно ниже в разделе **Assets**." \
+            "**Windows** — установщик \`.exe\` / \`.msi\`." \
+            "**macOS** (Intel + Apple Silicon) — образ \`.dmg\`." \
+            "" \
+            "Скачать нужный файл можно ниже в разделе **Assets**." \
             "" \
             "Постоянная ссылка на последнюю версию: https://github.com/${GITHUB_REPOSITORY}/releases/latest" \
             > notes.md
 
-          # создать новый релиз latest на текущем коммите с прикреплёнными файлами
           gh release create latest "${files[@]}" \
+            --target "${GITHUB_SHA}" \
             --title "Latest" \
             --notes-file notes.md \
             --latest
