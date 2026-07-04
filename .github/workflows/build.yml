@@ -107,6 +107,8 @@ jobs:
             "Скачать нужный файл можно ниже в разделе **Assets**." \
             "" \
             "Постоянная ссылка на последнюю версию: https://github.com/${GITHUB_REPOSITORY}/releases/latest" \
+            "" \
+            "<!-- commit: ${GITHUB_SHA} -->" \
             > notes.md
 
           gh release create latest "${files[@]}" \

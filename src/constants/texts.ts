@@ -10,6 +10,10 @@ export const TEXTS = {
     expired: "ПРОСРОЧЕНО",
     cancel: "Отмена",
   },
+  update: {
+    available: "Доступна новая версия",
+    action: "Нажмите, чтобы открыть страницу загрузки",
+  },
   header: {
     update: "Обновить",
   },

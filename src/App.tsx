@@ -1,11 +1,13 @@
-import { useState, useRef, useLayoutEffect } from "react";
-import { ToastContainer } from "react-toastify";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import { open } from "@tauri-apps/plugin-shell";
 import { TEXTS } from "@/constants/texts";
 import { Employees } from "@/sections/Employees";
 import { SupervisoryCase } from "@/sections/SupervisoryCase";
 import { Loader } from "@/components/Loader";
 import { AddOrganization } from "@/components/AddOrganization";
 import { BearIcon } from "@/components/ui/BearIcon";
+import { checkForUpdate } from "@/utils/checkForUpdate";
 import type { ComponentType } from "react";
 
 type Tab = "employees" | "supervisoryCase";
@@ -42,6 +44,17 @@ export const App = () => {
     if (logoRef.current) {
       setLogoRect(logoRef.current.getBoundingClientRect());
     }
+  }, []);
+
+  useEffect(() => {
+    checkForUpdate().then((info) => {
+      if (!info) return;
+      toast.info(`${TEXTS.update.available}. ${TEXTS.update.action}`, {
+        autoClose: false,
+        closeOnClick: false,
+        onClick: () => open(info.url),
+      });
+    });
   }, []);
 
   return (
