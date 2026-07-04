@@ -7,18 +7,18 @@ function buildParser() {
   return (tag: string) => {
     const splitted = tag.split(".");
     return {
-      get(scope: any, context: any) {
+      get(scope: unknown, context?: { scopeList?: unknown[] }) {
         if (tag === ".") return scope;
         const chain = [scope, ...(context?.scopeList ?? [])];
         for (const root of chain) {
-          let s = root;
+          let s: unknown = root;
           let ok = true;
           for (const key of splitted) {
-            if (s == null || !(key in s)) {
+            if (s == null || typeof s !== "object" || !(key in s)) {
               ok = false;
               break;
             }
-            s = s[key];
+            s = (s as Record<string, unknown>)[key];
           }
           if (ok) return s;
         }

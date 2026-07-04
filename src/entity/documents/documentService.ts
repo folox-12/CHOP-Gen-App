@@ -81,7 +81,7 @@ const generateDocsInfoFromPersonData = (
 export default {
   getDocuments: () => DOCUMENTS_FOR_TEMPLATE,
   getDocumentByKeys: (key: string) => {
-    return DOCUMENTS_FOR_TEMPLATE.find((el) => el.key === key)!.value;
+    return DOCUMENTS_FOR_TEMPLATE.find((el) => el.key === key)?.value ?? "";
   },
   generateDocsInfoFromPersonData,
   isHiringDoc,

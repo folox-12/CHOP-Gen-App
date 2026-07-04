@@ -5,6 +5,7 @@ import { Employees } from "@/sections/Employees";
 import { SupervisoryCase } from "@/sections/SupervisoryCase";
 import { Loader } from "@/components/Loader";
 import { AddOrganization } from "@/components/AddOrganization";
+import { BearIcon } from "@/components/ui/BearIcon";
 import type { ComponentType } from "react";
 
 type Tab = "employees" | "supervisoryCase";
@@ -50,13 +51,31 @@ export const App = () => {
       )}
 
       <nav className="flex border-b-2 border-gray-200 bg-white px-3 items-center gap-1 pt-7">
+        <BearIcon
+          size={44}
+          active={!loading}
+          className="select-none pointer-events-none"
+          style={{
+            opacity: loading ? 0 : 1,
+            transition: "opacity 0.15s ease",
+            position: "relative",
+            zIndex: 20,
+          }}
+        />
         <img
           ref={logoRef}
           src="/iceberg.svg"
           width={40}
           height={40}
           alt="Iceberg"
-          style={{ opacity: loading ? 0 : 1, transition: "opacity 0.15s ease" }}
+          style={{
+            opacity: loading ? 0 : 1,
+            transition: "opacity 0.15s ease",
+            transformOrigin: "bottom center",
+            animation: loading
+              ? undefined
+              : "iceberg-hit 30s ease-in-out infinite",
+          }}
         />
         {TABS.map(({ id, label }) => (
           <button

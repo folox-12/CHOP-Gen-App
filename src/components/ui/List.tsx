@@ -1,5 +1,11 @@
+type ListItem = {
+  key: string;
+  value: string;
+  event: () => void;
+};
+
 type Props = {
-  data: Record<any, any>[];
+  data: ListItem[];
   disabled: boolean;
 };
 export const List = ({ data, disabled = false }: Props) => {

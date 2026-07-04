@@ -1,13 +1,17 @@
-import { useState, ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { useState, ChangeEvent, useCallback, useMemo } from "react";
 import { Table } from "@/components/Table";
 import { PeopleTypeLess } from "@/entity/people/peopleTypes";
-import { translateIntoRussian } from "@/entity/people/peopleService";
+import {
+  translateIntoRussian,
+  createPeopleViewModel,
+} from "@/entity/people/peopleService";
 import { Header } from "@/components/Header";
 import { usePeopleStore } from "@/entity/people/usePeopleStore";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/Button";
 import { PersonCard } from "@/components/ui/PersonCard";
 import { List } from "@/components/ui/List";
+import { NumberSetting } from "@/components/ui/NumberSetting";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
 import { OrganizationId } from "@/entity/organisation/organisationTypes";
 import documentService, {
@@ -21,9 +25,6 @@ import { generateDocx } from "@/utils/generateDocx";
 import { pluralize } from "@/utils/pluralize";
 import { parseDDMMYYYY, daysUntil } from "@/utils/dateUtils";
 
-const numberInputClass =
-  "inline-block py-0.5 px-2 outline-gray-400 outline-1 rounded-md w-20 text-base text-gray-600 font-bold";
-
 export const Employees = () => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [isModalPeopleOpen, setIsModalPeopleOpen] = useState<boolean>(false);
@@ -36,30 +37,33 @@ export const Employees = () => {
   const [pendingDocKey, setPendingDocKey] = useState<string | null>(null);
   const [onlyErrors, setOnlyErrors] = useState<boolean>(false);
 
-  const people = usePeopleStore((state) => state.people);
-  const peopleLess = usePeopleStore((state) => state.peopleLess);
-  const getPeopleFromCompany = usePeopleStore(
-    (state) => state.getPeopleByOrgId,
-  );
-  const setPeopleLess = usePeopleStore((state) => state.setPeopleLess);
-  const getOnePersonById = usePeopleStore((state) => state.getOnePersonById);
-
-  const {
-    selectedId,
-    changeOutgoingNumber,
-    changeHiringOrderNumber,
-    changeFiringOrderNumber,
-  } = useCompanyStore((state) => state);
+  const selectedId = useCompanyStore((state) => state.selectedId);
+  const orgPeople = usePeopleStore((state) => state.people[selectedId]);
   const selectOrg = useCompanyStore((state) => state.selectOrg);
   const company = useCompanyStore((state) => state.organization);
+  const changeOutgoingNumber = useCompanyStore(
+    (state) => state.changeOutgoingNumber,
+  );
+  const changeHiringOrderNumber = useCompanyStore(
+    (state) => state.changeHiringOrderNumber,
+  );
+  const changeFiringOrderNumber = useCompanyStore(
+    (state) => state.changeFiringOrderNumber,
+  );
 
   const { getDocuments, getDocumentByKeys, generateDocsInfoFromPersonData } =
     documentService;
   const documents = getDocuments();
 
-  useEffect(() => {
-    setPeopleLess(getPeopleFromCompany(selectedId));
-  }, [people, selectedId, setPeopleLess, getPeopleFromCompany]);
+  const peopleLess = useMemo(
+    () => createPeopleViewModel(orgPeople ?? []),
+    [orgPeople],
+  );
+
+  const getOnePersonById = useCallback(
+    (id: string) => peopleLess.find((person) => person.id === id),
+    [peopleLess],
+  );
 
   const updateFilter = (e: ChangeEvent<HTMLInputElement>): void => {
     setSelectedPerson(undefined);
@@ -77,24 +81,21 @@ export const Employees = () => {
     });
   };
 
-  const openPeopleCard = (index: string) => {
-    setSelectedPerson([getOnePersonById(index)!]);
+  const openPeopleCard = (id: string) => {
+    const person = getOnePersonById(id);
+    if (!person) return;
+    setSelectedPerson([person]);
     setIsModalPeopleOpen(true);
   };
 
   const changeCompany = (idCompany: OrganizationId) => {
-    setPeopleLess(getPeopleFromCompany(idCompany));
     setSelectedPerson(undefined);
     selectOrg(idCompany);
   };
 
   const isSelected = useCallback(
-    (index: string) => {
-      const foundPerson = getOnePersonById(index);
-      if (!foundPerson) return false;
-      return selectedPerson?.some(({ id }) => id === foundPerson.id) ?? false;
-    },
-    [selectedPerson, getOnePersonById],
+    (id: string) => selectedPerson?.some((person) => person.id === id) ?? false,
+    [selectedPerson],
   );
 
   const generateDocs = useCallback(
@@ -318,47 +319,25 @@ export const Employees = () => {
       >
         <div className="flex flex-col gap-4 p-2">
           {pendingDocKey && needsOutgoingNumber(pendingDocKey) && (
-            <label className="flex items-center gap-2">
-              <span className="text-sm min-w-48">
-                {TEXTS.settings.outgoingNumber}:
-              </span>
-              <input
-                type="number"
-                className={numberInputClass}
-                value={Number(company?.outgoingNumber)}
-                onChange={(e) => changeOutgoingNumber(Number(e.target.value))}
-              />
-            </label>
+            <NumberSetting
+              label={TEXTS.settings.outgoingNumber}
+              value={company?.outgoingNumber}
+              onChange={changeOutgoingNumber}
+            />
           )}
           {pendingDocKey && documentService.isHiringDoc(pendingDocKey) && (
-            <label className="flex items-center gap-2">
-              <span className="text-sm min-w-48">
-                {TEXTS.settings.hiringOrderNumber}:
-              </span>
-              <input
-                type="number"
-                className={numberInputClass}
-                value={Number(company?.hiringOrderNumber)}
-                onChange={(e) =>
-                  changeHiringOrderNumber(Number(e.target.value))
-                }
-              />
-            </label>
+            <NumberSetting
+              label={TEXTS.settings.hiringOrderNumber}
+              value={company?.hiringOrderNumber}
+              onChange={changeHiringOrderNumber}
+            />
           )}
           {pendingDocKey && documentService.isFiringDoc(pendingDocKey) && (
-            <label className="flex items-center gap-2">
-              <span className="text-sm min-w-48">
-                {TEXTS.settings.firingOrderNumber}:
-              </span>
-              <input
-                type="number"
-                className={numberInputClass}
-                value={Number(company?.firingOrderNumber)}
-                onChange={(e) =>
-                  changeFiringOrderNumber(Number(e.target.value))
-                }
-              />
-            </label>
+            <NumberSetting
+              label={TEXTS.settings.firingOrderNumber}
+              value={company?.firingOrderNumber}
+              onChange={changeFiringOrderNumber}
+            />
           )}
           <Button
             onClick={() => generateDocs(selectedPerson, pendingDocKey!)}
@@ -373,46 +352,24 @@ export const Employees = () => {
         isOpen={isModalSettingsOpen}
         closeModal={() => setIsModalSettingsOpen(false)}
         title={TEXTS.app.settingsTitle}
+        size="small"
       >
-        <div className="flex gap-4 p-2 justify-center flex-wrap h-full min-h-full grow">
-          <label className="flex items-center gap-2">
-            <span className="text-sm min-w-48">
-              {TEXTS.settings.outgoingNumber}:
-            </span>
-            <input
-              type="number"
-              className={numberInputClass}
-              name="outgoingNumber"
-              value={Number(company?.outgoingNumber)}
-              onChange={(e) => changeOutgoingNumber(Number(e.target.value))}
-            />
-          </label>
-          <label className="flex items-center gap-2">
-            <span className="text-sm min-w-48">
-              {TEXTS.settings.hiringOrderNumber}:
-            </span>
-            <input
-              type="number"
-              className={numberInputClass}
-              name="hiringOrderNumber"
-              min="0"
-              value={Number(company?.hiringOrderNumber)}
-              onChange={(e) => changeHiringOrderNumber(Number(e.target.value))}
-            />
-          </label>
-          <label className="flex items-center gap-2">
-            <span className="text-sm min-w-48">
-              {TEXTS.settings.firingOrderNumber}:
-            </span>
-            <input
-              type="number"
-              className={numberInputClass}
-              name="firingOrderNumber"
-              min="0"
-              value={Number(company?.firingOrderNumber)}
-              onChange={(e) => changeFiringOrderNumber(Number(e.target.value))}
-            />
-          </label>
+        <div className="flex flex-col items-center justify-center gap-2 h-4/5">
+          <NumberSetting
+            label={TEXTS.settings.outgoingNumber}
+            value={company?.outgoingNumber}
+            onChange={changeOutgoingNumber}
+          />
+          <NumberSetting
+            label={TEXTS.settings.hiringOrderNumber}
+            value={company?.hiringOrderNumber}
+            onChange={changeHiringOrderNumber}
+          />
+          <NumberSetting
+            label={TEXTS.settings.firingOrderNumber}
+            value={company?.firingOrderNumber}
+            onChange={changeFiringOrderNumber}
+          />
         </div>
       </Modal>
     </div>

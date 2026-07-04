@@ -7,6 +7,34 @@
   to   { clip-path: inset(0 0 0% 0); }
 }
 
+/* Медведь взмахивает передней лапой и бьёт по айсбергу.
+   Цикл 30с — сам замах занимает ~1.8с, остальное время лапа стоит. */
+.bear-paw {
+  transform-box: view-box;
+  transform-origin: 39px 35px; /* плечо — точка вращения лапы */
+  animation: paw-swipe 30s ease-in-out infinite;
+}
+
+@keyframes paw-swipe {
+  0%, 1.5% { transform: rotate(0deg); }
+  2.4%     { transform: rotate(14deg); }  /* замах назад (к телу) */
+  3.3%     { transform: rotate(-58deg); } /* удар вперёд — контакт с айсбергом */
+  3.9%     { transform: rotate(-56deg); } /* короткая задержка на контакте */
+  4.8%     { transform: rotate(-30deg); } /* отвод лапы назад */
+  6%, 100% { transform: rotate(0deg); }
+}
+
+/* Айсберг стоит неподвижно до контакта лапы (~1с) и затем ощутимо трясётся. */
+@keyframes iceberg-hit {
+  0%, 4%     { transform: translateX(0) rotate(0deg); }
+  4.5%       { transform: translateX(5px) rotate(12deg); }
+  5.3%       { transform: translateX(-5px) rotate(-10deg); }
+  6.1%       { transform: translateX(4px) rotate(8deg); }
+  6.9%       { transform: translateX(-3px) rotate(-5deg); }
+  7.7%       { transform: translateX(2px) rotate(3deg); }
+  8.6%, 100% { transform: translateX(0) rotate(0deg); }
+}
+
 html,
 body,
 #root {

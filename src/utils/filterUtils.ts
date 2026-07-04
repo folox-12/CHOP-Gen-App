@@ -6,7 +6,7 @@
  * @param property - optional property to filter by (default is 'fullName')
  * @returns array of people filtered by name or property
  */
-export function getDataByProperty<T extends Record<string, any>>(
+export function getDataByProperty<T extends Record<string, unknown>>(
   data: T[],
   filter?: string,
   property: keyof T = "fullName" as keyof T,

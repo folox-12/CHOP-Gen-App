@@ -11,7 +11,7 @@ type TableData = {
 interface Props<T> {
   isSelected: (index: string) => boolean | undefined;
   toggleSelect: (item: T) => void;
-  translateTitle: (title: any) => string;
+  translateTitle: (title: string) => string;
   data?: (TableData & T)[];
   filter?: string;
   onDoubleClick?: (index: string) => void;
@@ -122,7 +122,7 @@ export const Table = <T,>({
                 key={index}
                 className={
                   isSelected(item.id)
-                    ? "bg-gray-300"
+                    ? "bg-gray-400"
                     : isInvalid
                       ? "bg-red-200"
                       : ""

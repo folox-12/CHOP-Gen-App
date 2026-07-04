@@ -1,36 +1,46 @@
 import { TEXTS } from "@/constants/texts";
 import {
-  PeopleFieldKeysRus,
-  PeopleFieldKeysEng,
   DictionaryEngToRussian,
   PeopleType,
   PeopleTypeLess,
 } from "@/entity/people/peopleTypes";
-import { v4 } from "uuid";
 
-export function translateIntoRussian(
-  title: PeopleFieldKeysEng,
-): PeopleFieldKeysRus {
-  return DictionaryEngToRussian[title];
+export function translateIntoRussian(title: string): string {
+  return (
+    DictionaryEngToRussian[title as keyof typeof DictionaryEngToRussian] ??
+    title
+  );
+}
+
+// Детерминированный id по стабильным полям сотрудника,
+// чтобы он не менялся при каждом пересчёте вью-модели.
+function makePersonId(employee: PeopleType): string {
+  return [
+    employee.lastName,
+    employee.name,
+    employee.middleName,
+    employee.passport,
+    employee.dateOfBirth,
+  ].join("|");
 }
 
 export function createPeopleViewModel(people: PeopleType[]): PeopleTypeLess[] {
-  return people.map((employer) => {
-    const passportSplitted = employer.passport.split(" ");
+  return people.map((employee) => {
+    const passportSplitted = employee.passport.split(" ");
     return {
-      id: v4(),
-      fullName: `${employer.lastName} ${employer.name} ${employer.middleName}`,
-      dateOfBirth: employer.dateOfBirth,
-      dateOfAdmission: employer.dateOfAdmission,
-      PPPeriod: employer.PPPeriod,
-      category: employer.category,
-      passport: !!passportSplitted[0]
+      id: makePersonId(employee),
+      fullName: `${employee.lastName} ${employee.name} ${employee.middleName}`,
+      dateOfBirth: employee.dateOfBirth,
+      dateOfAdmission: employee.dateOfAdmission,
+      PPPeriod: employee.PPPeriod,
+      category: employee.category,
+      passport: passportSplitted[0]
         ? `${passportSplitted[0]} №${passportSplitted[1]}`
         : TEXTS.common.expired,
-      YCHO: !!employer.seriesYCHO
-        ? `${employer.seriesYCHO} №${employer.numberYCHO}`
+      YCHO: employee.seriesYCHO
+        ? `${employee.seriesYCHO} №${employee.numberYCHO}`
         : TEXTS.common.expired,
-      registrationAddress: employer.registrationAddress,
+      registrationAddress: employee.registrationAddress,
     };
   });
 }
