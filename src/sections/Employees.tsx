@@ -1,11 +1,10 @@
-import { useState, ChangeEvent, useCallback, useMemo } from "react";
+import { useState, ChangeEvent, useCallback, useMemo, useEffect } from "react";
 import { Table } from "@/components/Table";
 import { PeopleTypeLess } from "@/entity/people/peopleTypes";
 import {
   translateIntoRussian,
   createPeopleViewModel,
 } from "@/entity/people/peopleService";
-import { Header } from "@/components/Header";
 import { usePeopleStore } from "@/entity/people/usePeopleStore";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +12,6 @@ import { PersonCard } from "@/components/ui/PersonCard";
 import { List } from "@/components/ui/List";
 import { NumberSetting } from "@/components/ui/NumberSetting";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
-import { OrganizationId } from "@/entity/organisation/organisationTypes";
 import documentService, {
   HIRING_DOCS,
   FIRING_DOCS,
@@ -39,7 +37,6 @@ export const Employees = () => {
 
   const selectedId = useCompanyStore((state) => state.selectedId);
   const orgPeople = usePeopleStore((state) => state.people[selectedId]);
-  const selectOrg = useCompanyStore((state) => state.selectOrg);
   const company = useCompanyStore((state) => state.organization);
   const changeOutgoingNumber = useCompanyStore(
     (state) => state.changeOutgoingNumber,
@@ -88,10 +85,10 @@ export const Employees = () => {
     setIsModalPeopleOpen(true);
   };
 
-  const changeCompany = (idCompany: OrganizationId) => {
+  // При смене организации сбрасываем выбранных сотрудников.
+  useEffect(() => {
     setSelectedPerson(undefined);
-    selectOrg(idCompany);
-  };
+  }, [selectedId]);
 
   const isSelected = useCallback(
     (id: string) => selectedPerson?.some((person) => person.id === id) ?? false,
@@ -224,7 +221,6 @@ export const Employees = () => {
 
   return (
     <div className="p-10! flex flex-col gap-2.5 h-full min-h-0">
-      <Header changeCompany={changeCompany} />
       <div className="flex gap-1.5">
         <input
           type="text"

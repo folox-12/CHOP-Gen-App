@@ -5,8 +5,9 @@ import { TEXTS } from "@/constants/texts";
 import { Employees } from "@/sections/Employees";
 import { SupervisoryCase } from "@/sections/SupervisoryCase";
 import { Loader } from "@/components/Loader";
-import { AddOrganization } from "@/components/AddOrganization";
 import { BearIcon } from "@/components/ui/BearIcon";
+import { Header } from "@/components/Header";
+import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
 import { checkForUpdate } from "@/utils/checkForUpdate";
 import type { ComponentType } from "react";
 
@@ -39,6 +40,7 @@ export const App = () => {
   const [loading, setLoading] = useState(true);
   const logoRef = useRef<HTMLImageElement>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
+  const selectOrg = useCompanyStore((state) => state.selectOrg);
 
   useLayoutEffect(() => {
     if (logoRef.current) {
@@ -90,6 +92,10 @@ export const App = () => {
               : "iceberg-hit 30s ease-in-out infinite",
           }}
         />
+      </nav>
+
+      <Header changeCompany={selectOrg} />
+      <nav className="flex border-b-2 border-gray-200 bg-white px-3 gap-1">
         {TABS.map(({ id, label }) => (
           <button
             key={id}
@@ -100,10 +106,6 @@ export const App = () => {
           </button>
         ))}
       </nav>
-
-      <div className="px-4 pt-3">
-        <AddOrganization />
-      </div>
 
       <main className="flex-1 min-h-0 overflow-auto">
         {TABS.map(

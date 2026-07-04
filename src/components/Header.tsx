@@ -9,6 +9,7 @@ import Icon from "@mdi/react";
 import { mdiTrashCanOutline } from "@mdi/js";
 import { toast } from "react-toastify";
 import { Modal } from "./Modal";
+import { AddOrganization } from "./AddOrganization";
 
 interface Header {
   changeCompany: (key: OrganizationId) => void;
@@ -79,6 +80,7 @@ export const Header = ({ changeCompany }: Header) => {
           </li>
         ))}
       </ul>
+      <AddOrganization />
       <Button onClick={() => fileInput.current?.click()}>
         {TEXTS.header.update}
       </Button>
