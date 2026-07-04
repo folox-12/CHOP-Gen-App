@@ -1,4 +1,4 @@
-export type OrganizationId = "org1" | "org2";
+export type OrganizationId = string;
 
 export type Organization = {
   id: OrganizationId;

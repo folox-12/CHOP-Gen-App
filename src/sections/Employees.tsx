@@ -99,7 +99,7 @@ export const Employees = () => {
 
   const generateDocs = useCallback(
     async (people: PeopleTypeLess[] | undefined, typeFile: string) => {
-      if (!people) return;
+      if (!people || !company) return;
       setIsDisabled(true);
       const outputName = getDocumentByKeys(typeFile);
       try {
@@ -130,7 +130,7 @@ export const Employees = () => {
 
   const generatePackage = useCallback(
     async (docKeys: readonly string[], onOrderUpdate: () => void) => {
-      if (!selectedPerson) return;
+      if (!selectedPerson || !company) return;
       setIsDisabled(true);
 
       const data = generateDocsInfoFromPersonData(selectedPerson, company);
@@ -222,7 +222,7 @@ export const Employees = () => {
   );
 
   return (
-    <div className="p-10! flex flex-col gap-2.5">
+    <div className="p-10! flex flex-col gap-2.5 h-full min-h-0">
       <Header changeCompany={changeCompany} />
       <div className="flex gap-1.5">
         <input
@@ -265,7 +265,7 @@ export const Employees = () => {
         <b className="text-base text-gray-600">{selectedPerson?.length ?? 0}</b>{" "}
         {TEXTS.app.people}
       </span>
-      <div className="overflow-x-auto">
+      <div className="flex-1 min-h-0 overflow-auto">
         <Table<PeopleTypeLess>
           data={visiblePeople}
           isSelected={isSelected}
@@ -278,7 +278,7 @@ export const Employees = () => {
       </div>
 
       <Modal
-        title={company!.name}
+        title={company?.name ?? ""}
         isOpen={isModalPeopleOpen && !!selectedPerson?.length}
         closeModal={() => setIsModalPeopleOpen(false)}
       >

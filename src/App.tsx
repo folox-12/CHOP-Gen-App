@@ -4,6 +4,7 @@ import { TEXTS } from "@/constants/texts";
 import { Employees } from "@/sections/Employees";
 import { SupervisoryCase } from "@/sections/SupervisoryCase";
 import { Loader } from "@/components/Loader";
+import { AddOrganization } from "@/components/AddOrganization";
 import type { ComponentType } from "react";
 
 type Tab = "employees" | "supervisoryCase";
@@ -43,7 +44,7 @@ export const App = () => {
   }, []);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-screen overflow-hidden">
       {loading && (
         <Loader targetRect={logoRect} onDone={() => setLoading(false)} />
       )}
@@ -68,9 +69,15 @@ export const App = () => {
         ))}
       </nav>
 
-      {TABS.map(
-        ({ id, Component }) => activeTab === id && <Component key={id} />,
-      )}
+      <div className="px-4 pt-3">
+        <AddOrganization />
+      </div>
+
+      <main className="flex-1 min-h-0 overflow-auto">
+        {TABS.map(
+          ({ id, Component }) => activeTab === id && <Component key={id} />,
+        )}
+      </main>
 
       <ToastContainer hideProgressBar={true} />
     </div>

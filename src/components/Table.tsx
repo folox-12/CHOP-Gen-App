@@ -52,7 +52,8 @@ export const Table = <T,>({
     return filtered;
   }, [data, filter, sortKey, sortDirection]);
 
-  const thHeadClass = "border-b border-gray-200 p-2 w-8";
+  const thHeadClass =
+    "border-b border-gray-200 p-2 w-8 sticky top-0 bg-white z-10";
   const tdBodyClass = "border-b border-gray-200 p-2 text-center";
 
   const sortByProperty = (key: keyof (T & TableData)) => {
@@ -81,7 +82,7 @@ export const Table = <T,>({
                 return (
                   <th
                     key={index}
-                    className="border-b border-gray-200 p-2 text-left whitespace-nowrap cursor-pointer"
+                    className="border-b border-gray-200 p-2 text-left whitespace-nowrap cursor-pointer sticky top-0 bg-white z-10"
                     onClick={() => sortByProperty(typedKey)}
                   >
                     {translateTitle(key)}

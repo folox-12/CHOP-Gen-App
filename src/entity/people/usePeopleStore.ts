@@ -18,6 +18,7 @@ type UserState = {
     rawPeople: Record<PeopleFieldKeysRus, string>[],
   ) => void;
   getPeopleByOrgId: (orgId: OrganizationId) => PeopleType[];
+  removePeople: (orgId: OrganizationId) => void;
 
   setPeopleLess: (rawPeople: PeopleType[]) => void;
   getOnePersonById: (index: string) => PeopleTypeLess | undefined;
@@ -26,7 +27,7 @@ export const usePeopleStore = create<UserState>()(
   devtools(
     persist(
       (set, get) => ({
-        people: { org1: [], org2: [] },
+        people: {},
         peopleLess: [],
 
         setPeople: (orgId, rawPeople) => {
@@ -42,7 +43,15 @@ export const usePeopleStore = create<UserState>()(
           });
         },
 
-        getPeopleByOrgId: (orgId) => get().people[orgId],
+        getPeopleByOrgId: (orgId) => get().people[orgId] ?? [],
+
+        removePeople: (orgId) => {
+          set((state) => {
+            const rest = { ...state.people };
+            delete rest[orgId];
+            return { people: rest };
+          });
+        },
 
         setPeopleLess: (people) => {
           set({ peopleLess: createPeopleViewModel(people) });
