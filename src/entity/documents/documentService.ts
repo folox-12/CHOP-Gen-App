@@ -2,12 +2,12 @@ import { Organization } from "../organisation/organisationTypes";
 import { PeopleTypeLess } from "../people/peopleTypes";
 import { TEXTS } from "@/constants/texts";
 
-type Document = {
+export type DocumentOfOrganisationType = {
   key: string;
   value: string;
 };
 
-const DOCUMENTS_FOR_TEMPLATE: Document[] = [
+const DOCUMENTS_FOR_TEMPLATE: DocumentOfOrganisationType[] = [
   { key: "requestToCard", value: TEXTS.documents.requestToCard },
   { key: "requestToEmployee", value: TEXTS.documents.requestToEmployee },
   {
@@ -33,6 +33,21 @@ export const FIRING_DOCS = [
 ] as const;
 
 const DOCS_WITHOUT_OUTGOING_NUMBER = ["inventoryForRequestToCard"] as const;
+
+const COMMON_DOCUMENTS: DocumentOfOrganisationType[] = [
+  { key: "generalLicense", value: TEXTS.documents.generalLicense },
+  { key: "egrulExtract", value: TEXTS.documents.egrulExtract },
+  { key: "insuranceContract", value: TEXTS.documents.insuranceContract },
+  { key: "formSample", value: TEXTS.documents.formSample },
+];
+
+const OBJECT_DOCUMENTS: DocumentOfOrganisationType[] = [
+  { key: "instruction", value: TEXTS.documents.instruction },
+  { key: "contract", value: TEXTS.documents.contract },
+  { key: "scheme", value: TEXTS.documents.scheme },
+  { key: "guardsOrder", value: TEXTS.documents.guardsOrder },
+  { key: "dutySchedule", value: TEXTS.documents.dutySchedule },
+];
 
 export const needsOutgoingNumber = (key: string): boolean =>
   !(DOCS_WITHOUT_OUTGOING_NUMBER as readonly string[]).includes(key);
@@ -80,8 +95,16 @@ const generateDocsInfoFromPersonData = (
 
 export default {
   getDocuments: () => DOCUMENTS_FOR_TEMPLATE,
+  getCommonDocuments: () => COMMON_DOCUMENTS,
+  getObjectDocuments: () => OBJECT_DOCUMENTS,
   getDocumentByKeys: (key: string) => {
-    return DOCUMENTS_FOR_TEMPLATE.find((el) => el.key === key)?.value ?? "";
+    return (
+      [
+        ...DOCUMENTS_FOR_TEMPLATE,
+        ...COMMON_DOCUMENTS,
+        ...OBJECT_DOCUMENTS,
+      ].find((el) => el.key === key)?.value ?? ""
+    );
   },
   generateDocsInfoFromPersonData,
   isHiringDoc,

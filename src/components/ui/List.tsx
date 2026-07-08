@@ -1,4 +1,4 @@
-type ListItem = {
+export type ListItem = {
   key: string;
   value: string;
   event: () => void;
@@ -6,7 +6,7 @@ type ListItem = {
 
 type Props = {
   data: ListItem[];
-  disabled: boolean;
+  disabled?: boolean;
 };
 export const List = ({ data, disabled = false }: Props) => {
   return (

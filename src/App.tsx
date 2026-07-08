@@ -41,6 +41,7 @@ export const App = () => {
   const logoRef = useRef<HTMLImageElement>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
   const selectOrg = useCompanyStore((state) => state.selectOrg);
+  const organization = useCompanyStore((state) => state.organization);
 
   useLayoutEffect(() => {
     if (logoRef.current) {
@@ -96,20 +97,26 @@ export const App = () => {
 
       <Header changeCompany={selectOrg} />
       <nav className="flex border-b-2 border-gray-200 bg-white px-3 gap-1">
-        {TABS.map(({ id, label }) => (
-          <button
-            key={id}
-            className={tabClass(activeTab, id)}
-            onClick={() => setActiveTab(id)}
-          >
-            {label}
-          </button>
-        ))}
+        {organization &&
+          TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              className={tabClass(activeTab, id)}
+              onClick={() => setActiveTab(id)}
+            >
+              {label}
+            </button>
+          ))}
       </nav>
-
       <main className="flex-1 min-h-0 overflow-auto">
-        {TABS.map(
-          ({ id, Component }) => activeTab === id && <Component key={id} />,
+        {organization ? (
+          TABS.map(
+            ({ id, Component }) => activeTab === id && <Component key={id} />,
+          )
+        ) : (
+          <div className="flex h-full items-center justify-center text-gray-500">
+            {TEXTS.app.nonCompany}
+          </div>
         )}
       </main>
 

@@ -8,6 +8,7 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "opener:allow-open-path",
     "fs:default",
     "shell:allow-open",
     {
@@ -27,6 +28,10 @@
           "all": true
         },
         {
+          "path": "$APPDATA/**",
+          "all": true
+        },
+        {
           "path": "$DOCUMENT/*",
           "all": true
         },
@@ -36,6 +41,19 @@
         },
         {
           "path": "$DESKTOP/*",
+          "all": true
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [
+        {
+          "path": "$APPDATA/*",
+          "all": true
+        },
+        {
+          "path": "$APPDATA/**",
           "all": true
         }
       ]
