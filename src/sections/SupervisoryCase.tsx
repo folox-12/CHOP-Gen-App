@@ -1,14 +1,18 @@
 import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiEye } from "@mdi/js";
+import { mdiEye, mdiTrayArrowDown } from "@mdi/js";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
 import { useObjectsStore } from "@/entity/objects/useObjectsStore";
 import { useCommonDocsStore } from "@/entity/documents/useCommonDocsStore";
 import documentService from "@/entity/documents/documentService";
-import { saveSupervisoryFile, isPreviewable } from "@/utils/supervisoryFiles";
+import {
+  saveSupervisoryFile,
+  downloadSupervisoryFile,
+  isPreviewable,
+} from "@/utils/supervisoryFiles";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { AddObject } from "@/components/AddObject";
@@ -76,6 +80,18 @@ export const SupervisoryCase = () => {
     }
   };
 
+  const downloadCommon = async (path: string) => {
+    try {
+      const dest = await downloadSupervisoryFile(path);
+      if (!dest) return;
+      toast.success(TEXTS.supervisory.savedToDevice + dest);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(TEXTS.supervisory.saveError + error.message);
+      }
+    }
+  };
+
   const deleteOpenedObject = () => {
     if (!openedObject) return;
     removeObject(selectedId, openedObject.id);
@@ -114,6 +130,12 @@ export const SupervisoryCase = () => {
                         <Icon path={mdiEye} size={0.9} />
                       </Button>
                     )}
+                    <Button
+                      title={TEXTS.supervisory.download}
+                      onClick={() => downloadCommon(path)}
+                    >
+                      <Icon path={mdiTrayArrowDown} size={0.9} />
+                    </Button>
                   </div>
                 ) : (
                   <label className={uploadClass}>

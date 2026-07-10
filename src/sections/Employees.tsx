@@ -20,6 +20,7 @@ import documentService, {
 import { toast } from "react-toastify";
 import { TEXTS } from "@/constants/texts";
 import { generateDocx } from "@/utils/generateDocx";
+import { saveFileDialog, pickDirectory } from "@/utils/saveLocation";
 import { pluralize } from "@/utils/pluralize";
 import { parseDDMMYYYY, daysUntil } from "@/utils/dateUtils";
 
@@ -98,13 +99,18 @@ export const Employees = () => {
   const generateDocs = useCallback(
     async (people: PeopleTypeLess[] | undefined, typeFile: string) => {
       if (!people || !company) return;
-      setIsDisabled(true);
       const outputName = getDocumentByKeys(typeFile);
+      const dest = await saveFileDialog(`${outputName}.docx`, [
+        { name: "Word", extensions: ["docx"] },
+      ]);
+      if (!dest) return;
+      setIsDisabled(true);
       try {
         await generateDocx(
           `/documents/${typeFile}.docx`,
           generateDocsInfoFromPersonData(people, company),
           outputName,
+          dest,
         );
         if (needsOutgoingNumber(typeFile)) {
           changeOutgoingNumber(Number(company!.outgoingNumber) + 1);
@@ -129,6 +135,11 @@ export const Employees = () => {
   const generatePackage = useCallback(
     async (docKeys: readonly string[], onOrderUpdate: () => void) => {
       if (!selectedPerson || !company) return;
+
+      // Пакет из нескольких файлов — выбираем папку назначения один раз.
+      const dir = await pickDirectory();
+      if (!dir) return;
+
       setIsDisabled(true);
 
       const data = generateDocsInfoFromPersonData(selectedPerson, company);
@@ -137,10 +148,12 @@ export const Employees = () => {
 
       for (const key of docKeys) {
         try {
+          const outputName = getDocumentByKeys(key);
           await generateDocx(
             `/documents/${key}.docx`,
             data,
-            getDocumentByKeys(key),
+            outputName,
+            `${dir}/${outputName}.docx`,
           );
           count++;
           if (needsOutgoingNumber(key)) outgoingCount++;

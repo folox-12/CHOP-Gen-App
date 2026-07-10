@@ -1,9 +1,8 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Icon from "@mdi/react";
-import { mdiPencil, mdiEye } from "@mdi/js";
-import { invoke } from "@tauri-apps/api/core";
-import { appDataDir, join } from "@tauri-apps/api/path";
+import { mdiPencil, mdiEye, mdiTrayArrowDown } from "@mdi/js";
+import { saveFileDialog } from "@/utils/saveLocation";
 import documentService, {
   DocumentOfOrganisationType,
 } from "@/entity/documents/documentService";
@@ -17,7 +16,11 @@ import { OrganizationId } from "@/entity/organisation/organisationTypes";
 import { useObjectsStore } from "@/entity/objects/useObjectsStore";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
 import { ObjectFiles, SecuredObject } from "@/entity/objects/objectTypes";
-import { saveSupervisoryFile, isPreviewable } from "@/utils/supervisoryFiles";
+import {
+  saveSupervisoryFile,
+  downloadSupervisoryFile,
+  isPreviewable,
+} from "@/utils/supervisoryFiles";
 
 type Props = {
   object: SecuredObject | null;
@@ -150,8 +153,12 @@ export const ObjectDetailsForm = ({
         toast.error(TEXTS.supervisory.monthRequired);
         return;
       }
-      setIsDisabled(true);
       const outputName = documentService.getDocumentByKeys(key);
+      const dest = await saveFileDialog(`${outputName}.docx`, [
+        { name: "Word", extensions: ["docx"] },
+      ]);
+      if (!dest) return;
+      setIsDisabled(true);
       try {
         await generateDocx(
           `/documents/${key}.docx`,
@@ -171,8 +178,9 @@ export const ObjectDetailsForm = ({
             }),
           },
           outputName,
+          dest,
         );
-        toast.success(`${TEXTS.app.fileCreated} - ${outputName}`);
+        toast.success(TEXTS.supervisory.savedToDevice + dest);
       } catch (error) {
         if (error instanceof Error) {
           toast.error(TEXTS.app.fileError + error.message);
@@ -183,16 +191,17 @@ export const ObjectDetailsForm = ({
     [company, object, duty],
   );
 
-  const openFile = useCallback(async (relativePath: string) => {
+  const downloadFile = async (path: string) => {
     try {
-      const fullPath = await join(await appDataDir(), relativePath);
-      await invoke("plugin:opener|open_path", { path: fullPath });
+      const dest = await downloadSupervisoryFile(path);
+      if (!dest) return;
+      toast.success(TEXTS.supervisory.savedToDevice + dest);
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(TEXTS.supervisory.openError + error.message);
+        toast.error(TEXTS.supervisory.saveError + error.message);
       }
     }
-  }, []);
+  };
 
   const renderDocAction = (doc: DocumentOfOrganisationType) => {
     if (documentService.isUploadKey(doc.key)) {
@@ -214,8 +223,11 @@ export const ObjectDetailsForm = ({
               <Icon path={mdiEye} size={0.9} />
             </Button>
           )}
-          <Button onClick={() => openFile(path)}>
-            {TEXTS.supervisory.download}
+          <Button
+            title={TEXTS.supervisory.download}
+            onClick={() => downloadFile(path)}
+          >
+            <Icon path={mdiTrayArrowDown} size={0.9} />
           </Button>
         </div>
       );

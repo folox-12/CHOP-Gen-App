@@ -120,6 +120,8 @@ export const TEXTS = {
     previewLoading: "Загрузка предпросмотра…",
     previewError: "Не удалось открыть предпросмотр: ",
     uploaded: "Файл загружен",
+    savedToDevice: "Файл сохранён: ",
+    saveError: "Не удалось сохранить файл: ",
     uploadError: "Ошибка загрузки файла: ",
     fileNotUploaded: "Файл не загружен",
     openError: "Не удалось открыть файл: ",

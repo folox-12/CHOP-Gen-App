@@ -1,4 +1,10 @@
-import { mkdir, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import {
+  mkdir,
+  writeFile,
+  readFile,
+  BaseDirectory,
+} from "@tauri-apps/plugin-fs";
+import { saveFileDialog } from "./saveLocation";
 
 export const isDocx = (path: string): boolean =>
   path.toLowerCase().endsWith(".docx");
@@ -27,4 +33,20 @@ export async function saveSupervisoryFile(
   await writeFile(path, bytes, { baseDir: BaseDirectory.AppData });
 
   return path;
+}
+
+// Настоящая загрузка файла из хранилища приложения (AppData) на устройство:
+// пользователь выбирает место сохранения через системный диалог.
+// Возвращает выбранный путь либо null, если диалог отменён.
+export async function downloadSupervisoryFile(
+  relativePath: string,
+): Promise<string | null> {
+  const fileName = sanitize(relativePath.split("/").pop() ?? "document");
+  const dest = await saveFileDialog(fileName);
+  if (!dest) return null;
+  const bytes = await readFile(relativePath, {
+    baseDir: BaseDirectory.AppData,
+  });
+  await writeFile(dest, bytes);
+  return dest;
 }

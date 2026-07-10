@@ -40,6 +40,10 @@
           "all": true
         },
         {
+          "path": "$HOME/**",
+          "all": true
+        },
+        {
           "path": "$DESKTOP/*",
           "all": true
         }
@@ -81,6 +85,7 @@
         }
       ]
     },
-    "shell:default"
+    "shell:default",
+    "dialog:default"
   ]
 }

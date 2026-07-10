@@ -32,6 +32,7 @@ export async function generateDocx(
   templateUrl: string,
   data: unknown,
   outputFileName: string,
+  outputPath?: string,
 ): Promise<void> {
   const arrayBuffer = await fetch(templateUrl).then((r) => r.arrayBuffer());
 
@@ -44,8 +45,8 @@ export async function generateDocx(
   doc.render(data);
 
   const buffer = doc.toBlob();
-  await writeFile(
-    `${await path.desktopDir()}/${outputFileName}.docx`,
-    new Uint8Array(await buffer.arrayBuffer()),
-  );
+  // Если путь не задан — по умолчанию сохраняем на рабочий стол.
+  const dest =
+    outputPath ?? `${await path.desktopDir()}/${outputFileName}.docx`;
+  await writeFile(dest, new Uint8Array(await buffer.arrayBuffer()));
 }
