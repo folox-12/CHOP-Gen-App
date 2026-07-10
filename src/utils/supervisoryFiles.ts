@@ -35,9 +35,6 @@ export async function saveSupervisoryFile(
   return path;
 }
 
-// Настоящая загрузка файла из хранилища приложения (AppData) на устройство:
-// пользователь выбирает место сохранения через системный диалог.
-// Возвращает выбранный путь либо null, если диалог отменён.
 export async function downloadSupervisoryFile(
   relativePath: string,
 ): Promise<string | null> {

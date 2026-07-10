@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Icon from "@mdi/react";
-import { mdiChevronDown } from "@mdi/js";
+import { Icon } from "./Icon";
 
 export type SelectOption = {
   value: string;
@@ -84,7 +83,7 @@ export const Select = ({
             onClick={() => setIsOpen((prev) => !prev)}
           >
             <Icon
-              path={mdiChevronDown}
+              name="chevronDown"
               size={0.8}
               className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
             />
@@ -100,7 +99,7 @@ export const Select = ({
             {selected ? selected.label : placeholder}
           </span>
           <Icon
-            path={mdiChevronDown}
+            name="chevronDown"
             size={0.8}
             className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
           />

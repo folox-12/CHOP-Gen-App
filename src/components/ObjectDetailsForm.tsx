@@ -1,7 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Icon from "@mdi/react";
-import { mdiPencil, mdiEye, mdiTrayArrowDown } from "@mdi/js";
+import { Icon } from "./ui/Icon";
 import { saveFileDialog } from "@/utils/saveLocation";
 import documentService, {
   DocumentOfOrganisationType,
@@ -116,7 +115,6 @@ export const ObjectDetailsForm = ({
 
   const [isEditing, setIsEditing] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  // Месяц и количество дней для генерации графика несения службы
   const [duty, setDuty] = useState<{ month: string; days: number }>({
     month: "",
     days: 0,
@@ -220,14 +218,14 @@ export const ObjectDetailsForm = ({
               title={TEXTS.supervisory.preview}
               onClick={() => setPreviewPath(path)}
             >
-              <Icon path={mdiEye} size={0.9} />
+              <Icon name="eye" size={0.9} />
             </Button>
           )}
           <Button
             title={TEXTS.supervisory.download}
             onClick={() => downloadFile(path)}
           >
-            <Icon path={mdiTrayArrowDown} size={0.9} />
+            <Icon name="download" size={0.9} />
           </Button>
         </div>
       );
@@ -398,7 +396,7 @@ export const ObjectDetailsForm = ({
                   title={TEXTS.supervisory.edit}
                   onClick={() => setIsEditing(true)}
                 >
-                  <Icon path={mdiPencil} size={0.9} />
+                  <Icon name="pencil" size={0.9} />
                 </Button>
               </div>
 

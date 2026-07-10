@@ -1,6 +1,5 @@
 import { getDataByProperty } from "@/utils/filterUtils";
-import { mdiArrowDown, mdiArrowUp, mdiAlert } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "./ui/Icon";
 import { useMemo, useState } from "react";
 import { TEXTS } from "@/constants/texts";
 
@@ -90,13 +89,13 @@ export const Table = <T,>({
                       sortDirection === "asc" ? (
                         <Icon
                           className="inline-block"
-                          path={mdiArrowUp}
+                          name="arrowUp"
                           size={0.7}
                         />
                       ) : (
                         <Icon
                           className="inline-block"
-                          path={mdiArrowDown}
+                          name="arrowDown"
                           size={0.7}
                         />
                       )
@@ -156,7 +155,7 @@ export const Table = <T,>({
                             className="inline-flex text-red-500 cursor-help"
                             title={invalidKeys.map(translateTitle).join(", ")}
                           >
-                            <Icon path={mdiAlert} size={0.8} />
+                            <Icon name="alert" size={0.8} />
                           </span>
                         )}
                         {String(value)}

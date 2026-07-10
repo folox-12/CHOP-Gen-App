@@ -1,11 +1,3 @@
-/**
- * Filter array of people by name or by specified property.
- * If no name is specified, the function will return the original array.
- * @param data - array of people
- * @param filter - name to filter by (case insensitive)
- * @param property - optional property to filter by (default is 'fullName')
- * @returns array of people filtered by name or property
- */
 export function getDataByProperty<T extends Record<string, unknown>>(
   data: T[],
   filter?: string,

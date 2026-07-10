@@ -11,9 +11,6 @@
   }
 }
 
-/* Закрытие модального окна: эффект «джина» как в macOS —
-   окно засасывается вниз в «док», сужаясь в тонкую горловину.
-   transform-origin: bottom задаётся на элементе (класс origin-bottom). */
 @keyframes genie-close {
   0% {
     transform: translateY(0) scaleX(1) scaleY(1);
@@ -37,7 +34,6 @@
   }
 }
 
-/* Появление модального окна: обратный «джин» — окно выезжает из «дока». */
 @keyframes genie-open {
   0% {
     transform: translateY(120%) scaleX(0.02) scaleY(0.06);
@@ -79,11 +75,9 @@
   }
 }
 
-/* Медведь взмахивает передней лапой и бьёт по айсбергу.
-   Цикл 30с — сам замах занимает ~1.8с, остальное время лапа стоит. */
 .bear-paw {
   transform-box: view-box;
-  transform-origin: 39px 35px; /* плечо — точка вращения лапы */
+  transform-origin: 39px 35px;
   animation: paw-swipe 30s ease-in-out infinite;
 }
 
@@ -94,23 +88,22 @@
   }
   2.4% {
     transform: rotate(14deg);
-  } /* замах назад (к телу) */
+  }
   3.3% {
     transform: rotate(-58deg);
-  } /* удар вперёд — контакт с айсбергом */
+  }
   3.9% {
     transform: rotate(-56deg);
-  } /* короткая задержка на контакте */
+  }
   4.8% {
     transform: rotate(-30deg);
-  } /* отвод лапы назад */
+  }
   6%,
   100% {
     transform: rotate(0deg);
   }
 }
 
-/* Айсберг стоит неподвижно до контакта лапы (~1с) и затем ощутимо трясётся. */
 @keyframes iceberg-hit {
   0%,
   4% {

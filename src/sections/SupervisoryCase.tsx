@@ -1,7 +1,6 @@
 import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import Icon from "@mdi/react";
-import { mdiEye, mdiTrayArrowDown } from "@mdi/js";
+import { Icon } from "@/components/ui/Icon";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
@@ -127,14 +126,14 @@ export const SupervisoryCase = () => {
                         title={TEXTS.supervisory.preview}
                         onClick={() => setPreviewPath(path)}
                       >
-                        <Icon path={mdiEye} size={0.9} />
+                        <Icon name="eye" size={0.9} />
                       </Button>
                     )}
                     <Button
                       title={TEXTS.supervisory.download}
                       onClick={() => downloadCommon(path)}
                     >
-                      <Icon path={mdiTrayArrowDown} size={0.9} />
+                      <Icon name="download" size={0.9} />
                     </Button>
                   </div>
                 ) : (

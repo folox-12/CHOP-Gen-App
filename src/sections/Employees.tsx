@@ -86,7 +86,6 @@ export const Employees = () => {
     setIsModalPeopleOpen(true);
   };
 
-  // При смене организации сбрасываем выбранных сотрудников.
   useEffect(() => {
     setSelectedPerson(undefined);
   }, [selectedId]);
@@ -136,7 +135,6 @@ export const Employees = () => {
     async (docKeys: readonly string[], onOrderUpdate: () => void) => {
       if (!selectedPerson || !company) return;
 
-      // Пакет из нескольких файлов — выбираем папку назначения один раз.
       const dir = await pickDirectory();
       if (!dir) return;
 

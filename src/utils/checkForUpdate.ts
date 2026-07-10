@@ -7,13 +7,9 @@ export type UpdateInfo = {
   url: string;
 };
 
-// Спрашивает у GitHub коммит последнего релиза и сравнивает с текущей сборкой.
-// Коммит зашит в тело релиза в CI как скрытый маркер `<!-- commit: <sha> -->`.
 export async function checkForUpdate(): Promise<UpdateInfo | null> {
-  // В dev-сборке коммит неизвестен — проверку не выполняем.
   if (__APP_COMMIT__ === "dev") return null;
 
-  // Нет сети — не проверяем обновления.
   if (typeof navigator !== "undefined" && !navigator.onLine) return null;
 
   try {
@@ -29,7 +25,7 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
       ?.slice(0, 7);
 
     if (!latestCommit) return null;
-    if (latestCommit === __APP_COMMIT__) return null; // уже актуальная версия
+    if (latestCommit === __APP_COMMIT__) return null;
 
     return {
       version: data.tag_name ?? "latest",

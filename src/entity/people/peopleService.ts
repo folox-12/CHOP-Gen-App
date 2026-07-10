@@ -12,8 +12,6 @@ export function translateIntoRussian(title: string): string {
   );
 }
 
-// Детерминированный id по стабильным полям сотрудника,
-// чтобы он не менялся при каждом пересчёте вью-модели.
 function makePersonId(employee: PeopleType): string {
   return [
     employee.lastName,

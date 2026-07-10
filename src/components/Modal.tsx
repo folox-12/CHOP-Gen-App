@@ -1,6 +1,5 @@
 import { FC, ReactNode, useEffect, useRef, useState } from "react";
-import Icon from "@mdi/react";
-import { mdiClose } from "@mdi/js";
+import { Icon } from "./ui/Icon";
 import { Button } from "./ui/Button";
 import { TEXTS } from "@/constants/texts";
 
@@ -12,7 +11,6 @@ type Props = {
   closeModal: () => void;
 };
 
-// Длительность анимации сминания при закрытии (должна совпадать с CSS ниже).
 const CLOSE_ANIMATION_MS = 600;
 
 export const Modal: FC<Props> = ({
@@ -25,8 +23,6 @@ export const Modal: FC<Props> = ({
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
 
-  // Пока окно открыто — запоминаем контент, чтобы он не пропадал во время
-  // анимации закрытия (родитель может обнулить данные сразу при закрытии).
   const lastContent = useRef<{ title: string; children: ReactNode }>({
     title,
     children,
@@ -92,7 +88,7 @@ export const Modal: FC<Props> = ({
         </div>
         <div className="inline-block absolute top-2 right-2">
           <Button title={TEXTS.common.closeModal} onClick={closeModal}>
-            <Icon path={mdiClose} size={1} />
+            <Icon name="close" size={1} />
           </Button>
         </div>
         {displayChildren}

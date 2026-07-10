@@ -45,7 +45,6 @@ export async function generateDocx(
   doc.render(data);
 
   const buffer = doc.toBlob();
-  // Если путь не задан — по умолчанию сохраняем на рабочий стол.
   const dest =
     outputPath ?? `${await path.desktopDir()}/${outputFileName}.docx`;
   await writeFile(dest, new Uint8Array(await buffer.arrayBuffer()));

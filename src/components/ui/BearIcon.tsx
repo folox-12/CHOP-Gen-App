@@ -55,7 +55,6 @@ export const BearIcon = ({
       strokeWidth="1.5"
     />
 
-    {/* голова */}
     <g stroke="#cbd5e1" strokeWidth="1.5">
       <circle cx="50" cy="25" r="3" fill="#ffffff" />
       <circle cx="52" cy="32" r="9" fill="#ffffff" />

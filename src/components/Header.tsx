@@ -5,8 +5,7 @@ import { TEXTS } from "@/constants/texts";
 import { read, utils } from "xlsx";
 import { usePeopleStore } from "@/entity/people/usePeopleStore";
 import { OrganizationId } from "@/entity/organisation/organisationTypes";
-import Icon from "@mdi/react";
-import { mdiTrashCanOutline } from "@mdi/js";
+import { Icon } from "./ui/Icon";
 import { toast } from "react-toastify";
 import { Modal } from "./Modal";
 import { AddOrganization } from "./AddOrganization";
@@ -75,7 +74,7 @@ export const Header = ({ changeCompany }: Header) => {
               title={TEXTS.organisation.delete}
               onClick={(e) => requestDelete(e, id, name)}
             >
-              <Icon path={mdiTrashCanOutline} size={0.8} />
+              <Icon name="trash" size={0.8} />
             </button>
           </li>
         ))}
