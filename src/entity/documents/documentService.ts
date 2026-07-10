@@ -5,6 +5,7 @@ import { TEXTS } from "@/constants/texts";
 export type DocumentOfOrganisationType = {
   key: string;
   value: string;
+  upload?: boolean;
 };
 
 const DOCUMENTS_FOR_TEMPLATE: DocumentOfOrganisationType[] = [
@@ -42,9 +43,10 @@ const COMMON_DOCUMENTS: DocumentOfOrganisationType[] = [
 ];
 
 const OBJECT_DOCUMENTS: DocumentOfOrganisationType[] = [
-  { key: "instruction", value: TEXTS.documents.instruction },
-  { key: "contract", value: TEXTS.documents.contract },
-  { key: "scheme", value: TEXTS.documents.scheme },
+  { key: "instruction", value: TEXTS.documents.instruction, upload: true },
+  { key: "contract", value: TEXTS.documents.contract, upload: true },
+  { key: "scheme", value: TEXTS.documents.scheme, upload: true },
+  { key: "olrrNotice", value: TEXTS.documents.olrrNotice, upload: true },
   { key: "guardsOrder", value: TEXTS.documents.guardsOrder },
   { key: "dutySchedule", value: TEXTS.documents.dutySchedule },
 ];
@@ -56,6 +58,8 @@ const isHiringDoc = (key: string) =>
   (HIRING_DOCS as readonly string[]).includes(key);
 const isFiringDoc = (key: string) =>
   (FIRING_DOCS as readonly string[]).includes(key);
+const isUploadKey = (key: string) =>
+  OBJECT_DOCUMENTS.some((doc) => doc.upload && doc.key === key);
 
 const generateDocsInfoFromPersonData = (
   peopleData: PeopleTypeLess[],
@@ -109,4 +113,5 @@ export default {
   generateDocsInfoFromPersonData,
   isHiringDoc,
   isFiringDoc,
+  isUploadKey,
 };

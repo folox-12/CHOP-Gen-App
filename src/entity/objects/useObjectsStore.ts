@@ -6,6 +6,7 @@ import { SecuredObject } from "./objectTypes";
 type ObjectsState = {
   objects: Record<OrganizationId, SecuredObject[]>;
   addObject: (orgId: OrganizationId, object: SecuredObject) => void;
+  updateObject: (orgId: OrganizationId, object: SecuredObject) => void;
   removeObject: (orgId: OrganizationId, objectId: string) => void;
   getObjectsByOrgId: (orgId: OrganizationId) => SecuredObject[];
 };
@@ -21,6 +22,16 @@ export const useObjectsStore = create<ObjectsState>()(
             objects: {
               ...state.objects,
               [orgId]: [...(state.objects[orgId] ?? []), object],
+            },
+          })),
+
+        updateObject: (orgId, object) =>
+          set((state) => ({
+            objects: {
+              ...state.objects,
+              [orgId]: (state.objects[orgId] ?? []).map((el) =>
+                el.id === object.id ? object : el,
+              ),
             },
           })),
 

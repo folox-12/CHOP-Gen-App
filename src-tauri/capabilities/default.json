@@ -68,6 +68,10 @@
           "all": true
         },
         {
+          "path": "$APPDATA/**",
+          "all": true
+        },
+        {
           "path": "$DOCUMENT/*",
           "all": true
         },

@@ -19,7 +19,6 @@ type ObjectForm = {
   address: string;
   orgName: string;
   signatory: string;
-  fullName: string;
   position: string;
   contractNumber: string;
   contractDate: string;
@@ -29,7 +28,6 @@ const DEFAULT_FORM: ObjectForm = {
   address: "",
   orgName: "",
   signatory: "",
-  fullName: "",
   position: "",
   contractNumber: "",
   contractDate: "",
@@ -37,7 +35,6 @@ const DEFAULT_FORM: ObjectForm = {
 
 const TEXT_FIELDS = [
   { key: "signatory", label: TEXTS.supervisory.fields.signatory },
-  { key: "fullName", label: TEXTS.supervisory.fields.fullName },
   { key: "position", label: TEXTS.supervisory.fields.position },
   { key: "contractNumber", label: TEXTS.supervisory.fields.contractNumber },
   { key: "contractDate", label: TEXTS.supervisory.fields.contractDate },
@@ -47,6 +44,7 @@ const UPLOADS = [
   { type: "contract", label: TEXTS.supervisory.uploadContract },
   { type: "instruction", label: TEXTS.supervisory.uploadInstruction },
   { type: "scheme", label: TEXTS.supervisory.uploadScheme },
+  { type: "olrrNotice", label: TEXTS.supervisory.uploadOlrrNotice },
 ] as const satisfies readonly { type: keyof ObjectFiles; label: string }[];
 
 const inputClass =
@@ -58,11 +56,15 @@ const uploadClass =
 export const AddObject = ({ orgId }: Props) => {
   const addObject = useObjectsStore((state) => state.addObject);
   const company = useCompanyStore((state) => state.organization);
-  const orgs = useCompanyStore((state) => state.mainInfoAboutCompany);
+  const objects = useObjectsStore((state) => state.objects[orgId]) ?? [];
 
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<ObjectForm>(DEFAULT_FORM);
   const [files, setFiles] = useState<ObjectFiles>({});
+
+  const customerOptions = [
+    ...new Set(objects.map((el) => el.customer.orgName).filter(Boolean)),
+  ];
 
   const close = () => {
     setIsOpen(false);
@@ -85,7 +87,7 @@ export const AddObject = ({ orgId }: Props) => {
       return;
     }
     try {
-      const path = await saveSupervisoryFile(company.name, form.orgName, file);
+      const path = await saveSupervisoryFile(file, company.name, form.orgName);
       setFiles((prev) => ({ ...prev, [type]: path }));
       toast.success(TEXTS.supervisory.uploaded);
     } catch (error) {
@@ -111,7 +113,6 @@ export const AddObject = ({ orgId }: Props) => {
       customer: {
         orgName: form.orgName,
         signatory: form.signatory,
-        fullName: form.fullName,
         position: form.position,
       },
       files,
@@ -149,10 +150,14 @@ export const AddObject = ({ orgId }: Props) => {
                 {TEXTS.supervisory.fields.orgName}
               </span>
               <Select
+                editable
                 value={form.orgName}
                 onChange={(value) => update("orgName", value)}
                 placeholder={TEXTS.supervisory.selectCustomer}
-                options={orgs.map((el) => ({ value: el.name, label: el.name }))}
+                options={customerOptions.map((name) => ({
+                  value: name,
+                  label: name,
+                }))}
               />
             </label>
 

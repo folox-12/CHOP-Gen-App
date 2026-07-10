@@ -142,10 +142,13 @@ export const Table = <T,>({
                 {Object.entries(item).map(([key, value], innerIndex) => {
                   if (key === "id") return null;
                   const isFirstColumn = key === firstColumnKey;
+                  const isCellInvalid = invalidKeys.includes(key);
                   return (
                     <td
                       key={`${index}${innerIndex}`}
-                      className="border-b border-gray-200 p-2! whitespace-nowrap text-sm break-all cursor-pointer"
+                      className={`border-b border-gray-200 p-2! whitespace-nowrap text-sm break-all cursor-pointer ${
+                        isCellInvalid ? "bg-red-500 text-white" : ""
+                      }`}
                     >
                       <span className="inline-flex items-center gap-1">
                         {isFirstColumn && isInvalid && (

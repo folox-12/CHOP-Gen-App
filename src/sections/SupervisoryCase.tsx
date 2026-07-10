@@ -1,78 +1,53 @@
-import { useCallback, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import Icon from "@mdi/react";
+import { mdiEye } from "@mdi/js";
 import { invoke } from "@tauri-apps/api/core";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { useCompanyStore } from "@/entity/organisation/useOrganisationStore";
 import { useObjectsStore } from "@/entity/objects/useObjectsStore";
+import { useCommonDocsStore } from "@/entity/documents/useCommonDocsStore";
 import documentService from "@/entity/documents/documentService";
-import { generateDocx } from "@/utils/generateDocx";
-import { List } from "@/components/ui/List";
-import { Button } from "@/components/ui/Button";
+import { saveSupervisoryFile, isPreviewable } from "@/utils/supervisoryFiles";
 import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
 import { AddObject } from "@/components/AddObject";
+import { ObjectDetailsForm } from "@/components/ObjectDetailsForm";
+import { FilePreviewModal } from "@/components/FilePreviewModal";
 import { TEXTS } from "@/constants/texts";
-import { SecuredObject, ObjectFiles } from "@/entity/objects/objectTypes";
 
-const UPLOAD_KEYS = ["contract", "instruction", "scheme"] as const;
-
-const isUploadKey = (key: string): key is keyof ObjectFiles =>
-  (UPLOAD_KEYS as readonly string[]).includes(key);
+const uploadClass =
+  "inline-flex items-center cursor-pointer p-1 px-2 text-white bg-cyan-500 rounded-md active:scale-95 text-sm";
 
 export const SupervisoryCase = () => {
   const selectedId = useCompanyStore((state) => state.selectedId);
   const company = useCompanyStore((state) => state.organization);
-  const objects = useObjectsStore((state) => state.objects[selectedId]) ?? [];
+  const storedObjects = useObjectsStore((state) => state.objects[selectedId]);
+  const objects = useMemo(() => storedObjects ?? [], [storedObjects]);
   const removeObject = useObjectsStore((state) => state.removeObject);
+  const commonFiles =
+    useCommonDocsStore((state) => state.files[selectedId]) ?? {};
+  const setCommonFile = useCommonDocsStore((state) => state.setFile);
 
-  const [selectedObjectId, setSelectedObjectId] = useState("");
-  const [isDisabled, setIsDisabled] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [openedObjectId, setOpenedObjectId] = useState("");
+  const [previewPath, setPreviewPath] = useState<string | null>(null);
 
-  const selectedObject = objects.find((el) => el.id === selectedObjectId);
-
-  const generate = useCallback(
-    async (key: string, object?: SecuredObject) => {
-      if (!company) return;
-      setIsDisabled(true);
-      const outputName = documentService.getDocumentByKeys(key);
-      try {
-        await generateDocx(
-          `/documents/${key}.docx`,
-          {
-            org: { ...company },
-            object: object
-              ? {
-                  address: object.address,
-                  contractNumber: object.contractNumber,
-                  contractDate: object.contractDate,
-                  ...object.customer,
-                }
-              : undefined,
-            date: new Date().toLocaleDateString(),
-            year: new Date().getFullYear(),
-          },
-          outputName,
-        );
-        toast.success(`${TEXTS.app.fileCreated} - ${outputName}`);
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(TEXTS.app.fileError + error.message);
-        }
-      }
-      setTimeout(() => setIsDisabled(false), 3000);
-    },
-    [company],
+  const customers = useMemo(
+    () => [
+      ...new Set(objects.map((el) => el.customer.orgName).filter(Boolean)),
+    ],
+    [objects],
   );
 
-  const commonList = useMemo(
-    () =>
-      documentService.getCommonDocuments().map((doc) => ({
-        ...doc,
-        event: () => generate(doc.key),
-      })),
-    [generate],
+  const customerObjects = useMemo(
+    () => objects.filter((el) => el.customer.orgName === selectedCustomer),
+    [objects, selectedCustomer],
   );
 
-  const openObjectFile = useCallback(async (relativePath: string) => {
+  const openedObject = objects.find((el) => el.id === openedObjectId) ?? null;
+
+  const openFile = useCallback(async (relativePath: string) => {
     try {
       const fullPath = await join(await appDataDir(), relativePath);
       await invoke("plugin:opener|open_path", { path: fullPath });
@@ -83,27 +58,28 @@ export const SupervisoryCase = () => {
     }
   }, []);
 
-  const objectList = useMemo(
-    () =>
-      documentService.getObjectDocuments().map((doc) => ({
-        ...doc,
-        event: () => {
-          if (isUploadKey(doc.key)) {
-            const path = selectedObject?.files[doc.key];
-            if (path) openObjectFile(path);
-            else toast.info(TEXTS.supervisory.fileNotUploaded);
-            return;
-          }
-          generate(doc.key, selectedObject);
-        },
-      })),
-    [generate, selectedObject, openObjectFile],
-  );
+  const uploadCommon = async (
+    key: string,
+    e: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !company) return;
+    try {
+      const path = await saveSupervisoryFile(file, company.name, "общие");
+      setCommonFile(selectedId, key, path);
+      toast.success(TEXTS.supervisory.uploaded);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(TEXTS.supervisory.uploadError + error.message);
+      }
+    }
+  };
 
-  const deleteSelectedObject = () => {
-    if (!selectedObject) return;
-    removeObject(selectedId, selectedObject.id);
-    setSelectedObjectId("");
+  const deleteOpenedObject = () => {
+    if (!openedObject) return;
+    removeObject(selectedId, openedObject.id);
+    setOpenedObjectId("");
     toast.success(TEXTS.supervisory.removed);
   };
 
@@ -111,43 +87,109 @@ export const SupervisoryCase = () => {
     <div className="p-10! flex flex-col gap-6 h-full min-h-0 overflow-auto">
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-bold">{TEXTS.supervisory.commonDocs}</h2>
-        <List data={commonList} disabled={isDisabled} />
+        <ul className="flex flex-col">
+          {documentService.getCommonDocuments().map((doc) => {
+            const path = commonFiles[doc.key];
+            return (
+              <li
+                key={doc.key}
+                className="flex items-center justify-between gap-3 border-b border-gray-200 py-1.5"
+              >
+                <span
+                  className={path ? "cursor-pointer hover:underline" : ""}
+                  onClick={() => path && openFile(path)}
+                >
+                  {doc.value}
+                </span>
+                {path ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 truncate max-w-72">
+                      {path.split("/").pop()}
+                    </span>
+                    {isPreviewable(path) && (
+                      <Button
+                        title={TEXTS.supervisory.preview}
+                        onClick={() => setPreviewPath(path)}
+                      >
+                        <Icon path={mdiEye} size={0.9} />
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <label className={uploadClass}>
+                    {TEXTS.supervisory.upload}
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => uploadCommon(doc.key, e)}
+                    />
+                  </label>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-lg font-bold">{TEXTS.supervisory.objects}</h2>
+          <h2 className="text-lg font-bold">{TEXTS.supervisory.customer}</h2>
           <Select
             className="min-w-64"
-            value={selectedObjectId}
-            onChange={setSelectedObjectId}
-            placeholder={TEXTS.supervisory.selectObject}
-            options={objects.map((el) => ({ value: el.id, label: el.address }))}
+            value={selectedCustomer}
+            onChange={setSelectedCustomer}
+            placeholder={TEXTS.supervisory.selectCustomer}
+            options={customers.map((name) => ({ value: name, label: name }))}
           />
           <AddObject orgId={selectedId} />
-          {selectedObject && (
-            <Button onClick={deleteSelectedObject}>
-              {TEXTS.supervisory.removeObject}
-            </Button>
-          )}
         </div>
 
         {objects.length === 0 && (
-          <p className="text-gray-500">{TEXTS.supervisory.noObjects}</p>
+          <p className="text-gray-500">{TEXTS.supervisory.noCustomers}</p>
         )}
 
-        {selectedObject && (
+        {objects.length > 0 && !selectedCustomer && (
+          <p className="text-gray-500">
+            {TEXTS.supervisory.selectCustomerFirst}
+          </p>
+        )}
+
+        {selectedCustomer && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-gray-600">
-              {TEXTS.supervisory.customer}: {selectedObject.customer.orgName},{" "}
-              {selectedObject.customer.fullName} —{" "}
-              {selectedObject.customer.position}
-            </p>
-            <h3 className="font-bold">{TEXTS.supervisory.objectDocs}</h3>
-            <List data={objectList} disabled={isDisabled} />
+            <h3 className="font-bold">{TEXTS.supervisory.customerObjects}</h3>
+            {customerObjects.length === 0 ? (
+              <p className="text-gray-500">{TEXTS.supervisory.noObjects}</p>
+            ) : (
+              <ul className="flex flex-col">
+                {customerObjects.map((object) => (
+                  <li
+                    key={object.id}
+                    onClick={() => setOpenedObjectId(object.id)}
+                    className="flex items-center justify-between gap-3 border-b border-gray-200 py-2 px-1 cursor-pointer hover:bg-gray-100 rounded-md"
+                  >
+                    <span>{object.address}</span>
+                    <span className="text-sm text-gray-500">
+                      {object.contractNumber}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </section>
+
+      <ObjectDetailsForm
+        object={openedObject}
+        orgId={selectedId}
+        onClose={() => setOpenedObjectId("")}
+        onDelete={deleteOpenedObject}
+      />
+
+      <FilePreviewModal
+        path={previewPath}
+        onClose={() => setPreviewPath(null)}
+      />
     </div>
   );
 };

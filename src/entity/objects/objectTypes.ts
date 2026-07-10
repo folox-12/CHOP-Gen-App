@@ -3,7 +3,6 @@ export type ObjectId = string;
 export type Customer = {
   orgName: string;
   signatory: string;
-  fullName: string;
   position: string;
 };
 
@@ -11,6 +10,7 @@ export type ObjectFiles = {
   contract?: string;
   instruction?: string;
   scheme?: string;
+  olrrNotice?: string;
 };
 
 export type SecuredObject = {

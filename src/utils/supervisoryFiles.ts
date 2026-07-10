@@ -1,5 +1,14 @@
 import { mkdir, writeFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 
+export const isDocx = (path: string): boolean =>
+  path.toLowerCase().endsWith(".docx");
+
+export const isPdf = (path: string): boolean =>
+  path.toLowerCase().endsWith(".pdf");
+
+export const isPreviewable = (path: string): boolean =>
+  isDocx(path) || isPdf(path);
+
 const sanitize = (name: string): string =>
   name
     .replace(/[\\/:*?"<>|]/g, "_")
@@ -7,11 +16,10 @@ const sanitize = (name: string): string =>
     .replace(/\s+/g, " ");
 
 export async function saveSupervisoryFile(
-  orgName: string,
-  customerName: string,
   file: File,
+  ...segments: string[]
 ): Promise<string> {
-  const dir = `supervisory_case/${sanitize(orgName)}/${sanitize(customerName)}`;
+  const dir = ["supervisory_case", ...segments.map(sanitize)].join("/");
   await mkdir(dir, { baseDir: BaseDirectory.AppData, recursive: true });
 
   const path = `${dir}/${sanitize(file.name)}`;
